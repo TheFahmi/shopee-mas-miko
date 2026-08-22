@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+.next/
+*.tsbuildinfo
+
+# Database & local files
+*.db
+*.sqlite
+*.sqlite3
+uploads/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# System files
+.DS_Store
+Thumbs.db
+nul
+src_corrupt/
+**/src_corrupt/
