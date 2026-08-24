@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -99,7 +100,8 @@ export class AffiliateReportsService {
     const paid = commissions
       .filter((c) => c.status === 'paid')
       .reduce((s, c) => s + (c.commissionAmount || 0), 0);
-    const c �3��9xcF�^X}�#�ar�_������lter((c) => c.status === 'confirmed')
+    const confirmed = commissions
+      .filter((c) => c.status === 'confirmed')
       .reduce((s, c) => s + (c.commissionAmount || 0), 0);
     const pending = commissions
       .filter((c) => c.status === 'pending')

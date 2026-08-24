@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -43,10 +44,24 @@ export class SeedService {
       role: UserRole.ADMIN,
     });
 
-    const affiliatePassword = await bcrypt.hash('affiliate123', 10);
+    const employeePassword = await bcrypt.hash('employee123', 10);
+    const employeeUser = await this.usersRepo.save({
+      email: 'karyawan@wish.com',
+      password: employeePassword,
+      name: 'Budi Santoso',
+      role: UserRole.EMPLOYEE,
+    });
+
+    const sitiUser = await this.usersRepo.save({
+      email: 'siti@wish.com',
+      password: employeePassword,
+      name: 'Siti Rahayu',
+      role: UserRole.EMPLOYEE,
+    });
+
     const affiliate = await this.usersRepo.save({
       email: 'affiliate@shopee-affiliate.com',
-      password: affiliatePassword,
+      password: adminPassword,
       name: 'Demo Affiliate',
       role: UserRole.AFFILIATE,
     });
@@ -66,7 +81,7 @@ export class SeedService {
       { name: 'Kaos Polos Premium', price: 89000, commissionRate: 8.5, categoryId: categories[1].id, description: 'Kaos polos cotton combed 30s', shopeeUrl: 'https://shopee.co.id/product/4' },
       { name: 'Jaket Hoodie Oversize', price: 199000, commissionRate: 7.0, categoryId: categories[1].id, description: 'Hoodie oversize unisex', shopeeUrl: 'https://shopee.co.id/product/5' },
       { name: 'Skincare Set Lengkap', price: 350000, commissionRate: 10.0, categoryId: categories[2].id, description: 'Set perawatan wajah lengkap', shopeeUrl: 'https://shopee.co.id/product/6' },
-      { name: 'Sunscreen SPF 50+', price: 125000, commissionRate: 9.0, categoryId: categories[2].id, description: 'Sunscreen wajah SPF 50+ PA++++', shopeeUrl>�������7��3�ȿĦ����lBG]�T-7' },
+      { name: 'Sunscreen SPF 50+', price: 125000, commissionRate: 9.0, categoryId: categories[2].id, description: 'Sunscreen wajah SPF 50+ PA++++', shopeeUrl: 'https://shopee.co.id/product/7' },
       { name: 'Rak Serbaguna 5 Tingkat', price: 299000, commissionRate: 6.0, categoryId: categories[3].id, description: 'Rak penyimpanan serbaguna', shopeeUrl: 'https://shopee.co.id/product/8' },
       { name: 'Kopi Arabica Premium 200g', price: 75000, commissionRate: 12.0, categoryId: categories[4].id, description: 'Biji kopi arabica premium', shopeeUrl: 'https://shopee.co.id/product/9' },
       { name: 'Snack Box Hampers', price: 150000, commissionRate: 8.0, categoryId: categories[4].id, description: 'Paket snack premium', shopeeUrl: 'https://shopee.co.id/product/10' },
@@ -90,6 +105,10 @@ export class SeedService {
         date.setDate(date.getDate() - dayOffset);
         date.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
 
+        const clicks = Math.floor(Math.random() * 200) + 10;
+        const views = clicks * (Math.floor(Math.random() * 10) + 3);
+        const conversionRate = Number(((quantity / clicks) * 100).toFixed(2));
+
         transactions.push({
           productId: product.id,
           userId: affiliate.id,
@@ -100,52 +119,21 @@ export class SeedService {
           status: statuses[Math.floor(Math.random() * statuses.length)],
           trafficSource: source,
           transactionDate: date,
-          isManual: Math.random() > 0.85,
-          notes: Math.random() > 0.7 ? 'Transaksi dari live streaming' : undefined,
-          liveSessionId: source === TrafficSource.LIVE ? `LS${Math.floor(Math.random() * 100)}` : undefined,
-          videoId: source === TrafficSource.VIDEO ? `VID${Math.floor(Math.random() * 100)}` : undefined,
+          isManual: false,
+          clicks,
+          views,
+          conversionRate: Math.min(conversionRate, 100),
+          shopeeOrderId: `240${dayOffset}${Math.floor(Math.random() * 900000 + 100000)}`,
           socialPlatform: source === TrafficSource.SOCIAL_MEDIA ? socialPlatforms[Math.floor(Math.random() * socialPlatforms.length)] : undefined,
-          clicks: Math.floor(Math.random() * 200) + 10,
-          views: Math.floor(Math.random() * 5000) + 100,
-          conversionRate: Number((Math.random() * 5 + 0.5).toFixed(2)),
+          liveSessionId: source === TrafficSource.LIVE ? `LIVE-${dayOffset}-${j}` : undefined,
+          videoId: source === TrafficSource.VIDEO ? `VID-${dayOffset}-${j}` : undefined,
         });
       }
     }
 
     await this.transactionsRepo.save(transactions);
 
-    // Seed test employee with user account
-    const employeePassword = await bcrypt.hash('employee123', 10);
-    const employeeUser = await this.usersRepo.save({
-      email: 'karyawan@wish.com',
-      password: employeePassword,
-      name: 'Budi Santoso',
-      role: UserRole.EMPLOYEE,
-    });
-
-    const employeeUser2 = await this.usersRepo.save({
-      email: 'siti@wish.com',
-      password: employeePassword,
-      name: 'Siti Rahayu',
-      role: UserRole.EMPLOYEE,
-    });
-
-    const employeeUser3 = await this.usersRepo.save({
-      email: 'ahmad@wish.com',
-      password: employeePassword,
-      name: 'Ahmad Wijaya',
-      role: UserRole.EMPLOYEE,
-    });
-
-    const employeeUser4 = await this.usersRepo.save({
-      email: 'dewi@wish.com',
-      password: employeePassword,
-      name: 'Dewi Lestari',
-      role: UserRole.EMPLOYEE,
-    });
-
     await this.employeesRepo.save([
-      // 4 Host Tetap (permanent)
       {
         name: 'Budi Santoso',
         email: 'karyawan@wish.com',
@@ -158,7 +146,7 @@ export class SeedService {
         mealAllowance: 750000,
         otherAllowance: 250000,
         commissionRate: 2.5,
-   +�.�8V���1� !V�u߇#��Ud�����+V�-15'),
+        joinDate: new Date('2024-01-15'),
         bankName: 'BCA',
         bankAccount: '1234567890',
         bankAccountName: 'Budi Santoso',
@@ -180,92 +168,88 @@ export class SeedService {
         bankName: 'BRI',
         bankAccount: '0987654321',
         bankAccountName: 'Siti Rahayu',
-        userId: employeeUser2.id,
+        userId: sitiUser.id,
       },
       {
-        name: 'Ahmad Wijaya',
+        name: 'Ahmad Fauzi',
         email: 'ahmad@wish.com',
-        phone: '08112233445',
+        phone: '08134567890',
         position: EmployeePosition.HOST,
         status: EmployeeStatus.ACTIVE,
         employmentType: EmploymentType.PERMANENT,
         baseSalary: 4500000,
         transportAllowance: 500000,
         mealAllowance: 750000,
-        otherAllowance: 200000,
-        commissionRate: 2.5,
-        joinDate: new Date('2024-06-01'),
+        otherAllowance: 300000,
+        commissionRate: 3.0,
+        joinDate: new Date('2023-11-01'),
         bankName: 'Mandiri',
         bankAccount: '1122334455',
-        bankAccountName: 'Ahmad Wijaya',
-        userId: employeeUser3.id,
+        bankAccountName: 'Ahmad Fauzi',
       },
       {
         name: 'Dewi Lestari',
         email: 'dewi@wish.com',
-        phone: '08155667788',
+        phone: '08145678901',
         position: EmployeePosition.HOST,
         status: EmployeeStatus.ACTIVE,
         employmentType: EmploymentType.PERMANENT,
-        baseSalary: 4500000,
+        baseSalary: 4200000,
         transportAllowance: 500000,
         mealAllowance: 750000,
         otherAllowance: 200000,
-        commissionRate: 2.5,
-        joinDate: new Date('2024-04-15'),
+        commissionRate: 2.0,
+        joinDate: new Date('2024-06-01'),
         bankName: 'BCA',
         bankAccount: '5566778899',
         bankAccountName: 'Dewi Lestari',
-        userId: employeeUser4.id,
       },
-      // 2 Host Freelance
       {
-        name: 'Rina Marlina',
-        email: 'rina@wish.com',
-        phone: '08199887766',
+        name: 'Rian Pratama',
+        email: 'rian@wish.com',
+        phone: '08156789012',
         position: EmployeePosition.HOST,
         status: EmployeeStatus.ACTIVE,
         employmentType: EmploymentType.FREELANCE,
-        baseSalary: 0,
-        transportAllowance: 0,
-        mealAllowance: 0,
+        baseSalary: 2500000,
+        transportAllowance: 300000,
+        mealAllowance: 500000,
         otherAllowance: 0,
-        commissionRate: 3.0,
+        commissionRate: 3.5,
+        joinDate: new Date('2024-05-15'),
+        bankName: 'BCA',
+        bankAccount: '9988776655',
+        bankAccountName: 'Rian Pratama',
+      },
+      {
+        name: 'Mega Putri',
+        email: 'mega@wish.com',
+        phone: '08167890123',
+        position: EmployeePosition.HOST,
+        status: EmployeeStatus.ACTIVE,
+        employmentType: EmploymentType.FREELANCE,
+        baseSalary: 2500000,
+        transportAllowance: 300000,
+        mealAllowance: 500000,
+        otherAllowance: 0,
+        commissionRate: 3.5,
         joinDate: new Date('2024-08-01'),
-        bankName: 'BNI',
-        bankAccount: '6677889900',
-        bankAccountName: 'Rina Marlina',
-      },
-      {
-        name: 'Dani Pratama',
-        email: 'dani@wish.com',
-        phone: '08133445566',
-        position: EmployeePosition.HOST,
-        status: EmployeeStatus.ACTIVE,
-        employmentType: EmploymentType.FREELANCE,
-        baseSalary: 0,
-        transportAllowance: 0,
-        mealAllowance: 0,
-        otherAllowance: 0,
-        commissionRate: 3.0,
-        joinDate: new Date('2024-09-01'),
         bankName: 'Mandiri',
-        bankAccount: '7788990011',
-        bankAccountName: 'Dani Pratama',
+        bankAccount: '6677889900',
+        bankAccountName: 'Mega Putri',
       },
-      // 1 Staff (non-host)
       {
         name: 'Fitri Handayani',
         email: 'fitri@wish.com',
-        phone: '08177665544',
+        phone: '08178901234',
         position: EmployeePosition.STAFF,
         status: EmployeeStatus.ACTIVE,
         employmentType: EmploymentType.PERMANENT,
-        baseSalary: 3500000,
-        transportAllowance: 500000,
-        mealAllowance: 750000,
-        otherAllowance: 200000,
-        commissionRate: 1.0,
+        baseSalary: 4000000,
+        transportAllowance: 400000,
+        mealAllowance: 600000,
+        otherAllowance: 150000,
+        commissionRate: 0,
         joinDate: new Date('2024-07-01'),
         bankName: 'BRI',
         bankAccount: '3344556677',
@@ -274,17 +258,14 @@ export class SeedService {
     ]);
 
     console.log(`✅ Seeded: ${transactions.length} transactions, ${products.length} products, ${categories.length} categories`);
-    console.log('👥 Employees: 4 permanent hosts, 2 freelance hosts, 1 staff');
-    console.log('📋 Employee logins: karyawan@wish.com / employee123, siti@wish.com / employee123');
 
     // ========== SEED MONITORING DATA ==========
     await this.seedMonitoringData(products, categories, affiliate);
   }
 
   private async seedMonitoringData(products: Product[], categories: Category[], affiliate: User) {
-    ��Ջ��\�{Ś_~�ت��"NZ�k�ey%��ring data...');
+    console.log('📊 Seeding monitoring data...');
 
-    // Seed Sellers
     const sellerNames = [
       { name: 'Toko Elektronik Jaya', shopName: 'ElektroJaya Official', category: 'Elektronik', sellerId: 'SLR001' },
       { name: 'Fashion Corner ID', shopName: 'FashionCorner_ID', category: 'Fashion', sellerId: 'SLR002' },
@@ -312,7 +293,6 @@ export class SeedService {
       })),
     );
 
-    // Seed Sold Products (90 days of data)
     const trafficSources = ['live', 'video', 'social', 'direct', 'search'];
     const statuses = ['completed', 'completed', 'completed', 'pending', 'refunded'];
     const affiliateNames = ['Demo Affiliate', 'Super Affiliate Pro', 'Content Creator X'];
@@ -347,151 +327,97 @@ export class SeedService {
           commissionAmount: Math.round(revenue * commRate / 100),
           status: statuses[Math.floor(Math.random() * statuses.length)],
           transactionDate: date,
-          orderId: `ORD${Date.now()}${Math.floor(Math.random() * 9999)}`,
           trafficSource: trafficSources[Math.floor(Math.random() * trafficSources.length)],
         });
       }
     }
     await this.monSoldRepo.save(soldProducts);
 
-    // Seed Seller Recaps (monthly for last 3 months)
-    const periods = ['monthly', 'weekly', 'daily'];
     const sellerRecaps: DeepPartial<MonitoringSellerRecap>[] = [];
     for (const seller of sellers) {
-      for (let monthOffset = 0; monthOffset < 3; monthOffset++) {
-        const start = new Date();
-        start.s`�$�xRv�H���*-i�g�ޣ�ُ�Offset, 1);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(start);
-        end.setMonth(end.getMonth() + 1, 0);
-        end.setHours(23, 59, 59, 999);
+      const totalProductsSold = Math.floor(Math.random() * 500) + 50;
+      const totalRevenue = Math.floor(Math.random() * 200000000) + 10000000;
+      const commRate = Number((Math.random() * 6 + 2).toFixed(2));
 
-        const totalProductsSold = Math.floor(Math.random() * 500) + 50;
-        const totalRevenue = Math.floor(Math.random() * 200000000) + 10000000;
-        const commRate = Number((Math.random() * 6 + 2).toFixed(2));
-
-        sellerRecaps.push({
-          sellerName: seller.name,
-          sellerId: seller.sellerId,
-          shopName: seller.shopName,
-          totalProductsSold,
-          totalRevenue,
-          commissionRate: commRate,
-          commissionAmount: Math.round(totalRevenue * commRate / 100),
-          totalOrders: Math.floor(totalProductsSold * 0.8),
-          averageOrderValue: Math.round(totalRevenue / totalProductsSold),
-          topProduct: products[Math.floor(Math.random() * products.length)].name,
-          topCategory: seller.category,
-          status: 'active',
-          period: 'monthly',
-          periodStart: start,
-          periodEnd: end,
-        });
-      }
+      sellerRecaps.push({
+        sellerName: seller.name,
+        sellerId: seller.sellerId,
+        category: seller.category,
+        totalProducts: totalProductsSold,
+        totalRevenue,
+        commissionRate: commRate,
+        totalCommission: Math.round(totalRevenue * commRate / 100),
+        totalOrders: Math.floor(totalProductsSold * 0.8),
+        status: 'active',
+      });
     }
     await this.monSellerRepo.save(sellerRecaps);
 
-    // Seed Affiliate Commissions
     const affiliateCommissions: DeepPartial<MonitoringAffiliateCommission>[] = [];
     for (let affIdx = 0; affIdx < affiliateNames.length; affIdx++) {
       for (let monthOffset = 0; monthOffset < 3; monthOffset++) {
-        const start = new Date();
-        start.setMonth(start.getMonth() - monthOffset, 1);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(start);
-        end.setMonth(end.getMonth() + 1, 0);
-        end.setHours(23, 59, 59, 999);
-
         const totalRevenue = Math.floor(Math.random() * 300000000) + 20000000;
         const commRate = Number((Math.random() * 5 + 2).toFixed(2));
         const totalComm = Math.round(totalRevenue * commRate / 100);
-        const liveComm = Math.round(totalComm * (Math.random() * 0.4 + 0.1));
-        const videoComm = Math.round(totalComm * (Math.random() * 0.3 + 0.1));
-        const socialComm = Math.round(totalComm * (Math.random() * 0.2 + 0.05));
-        const directComm = totalComm - liveComm - videoComm - socialComm;
         const isPaid = monthOffset > 0;
 
         affiliateCommissions.push({
           affiliateName: affiliateNames[affIdx],
           affiliateId: affiliateIds[affIdx],
-          totalCommission: totalComm,
+          productName: products[affIdx % products.length].name,
+          productId: `PROD${affIdx + 1}`,
+          sellerId: sellers[affIdx % sellers.length].sellerId,
+          sellerName: sellers[affIdx % sellers.length].name,
+          orderId: `ORD-${Date.now()}-${affIdx}-${monthOffset}`,
+          orderAmount: totalRevenue,
           commissionRate: commRate,
-          totalProductsSold: Math.floor(Math.random() * 800) + 100,
-          totalRevenue,
-          paymentStatus: isPaid ? 'paid' : (Math.random() > 0.5 ? 'pending' : 'processing'),
-          paymentDate: isPaid ? end : undefined,
-          paymentMethod: isPaid ? 'Bank Transfer' : '',
-          paymentReference: isPaid ? `PAY${Date.now()}${affIdx}` : '',
-          paidAmount: isPaid ? totalComm : 0,
-          pendingAmount: isPaid ? 0 : totalComm,
-          period: 'monthly',
-          periodStart: start,
-          periodEnd: end,
-          topChannel: 'live',
-          liveCommission: liveComm,
-          videoCommission: videoComm,
-          socialCommission: socialComm,
-          directCommission: directComm,
+          commissionEarned: totalComm,
+          paymentStatus: isPaid ? 'PAID' : 'PENDING',
+          transactionDate: new Date(),
         });
       }
     }
     await this.monCommRepo.save(affiliateCommissions);
 
-    // Seed Demo Alerts
     await this.monAlertRepo.save([
       {
         title: 'Peningkatan Komisi Signifikan',
-        message: 'Komisi Demo Affiliate meningkat 45% dari bulan lalu. Total komisi bulan ini: Rp 12.500.000',
-        alertType: 'increase',
-        entityType: 'affiliate',
-        entityId: 'AFF001',
-        entityName: 'Demo Affiliate',
-        previousValue: 8620000,
-        currentValue: 12500000,
-        changePercent: 45,
+        description: 'Komisi Demo Affiliate meningkat 45% dari bulan lalu. Total komisi bulan ini: Rp 12.500.000',
+        type: 'increase',
         severity: 'warning',
         isRead: false,
+        sellerId: 'SLR001',
+        sellerName: 'Toko Elektronik Jaya',
       },
       {
         title: 'Penurunan Penjualan Seller',
-        message: 'Penjualan Toko Elektronik Jaya turun 25% dalam 7 hari terakhir',
-        alertType: 'decrease',
-        entityType: 'seller',
-        entityId: 'SLR001',
-        entityName: 'Toko Elektronik Jaya',
-        previousValue: 150000000,
-        currentValue: 112500000,
-  b5�O~��y���o��N�bCt�����:�$  severity: 'warning',
+        description: 'Penjualan Toko Elektronik Jaya turun 25% dalam 7 hari terakhir',
+        type: 'decrease',
+        severity: 'warning',
         isRead: false,
+        sellerId: 'SLR001',
+        sellerName: 'Toko Elektronik Jaya',
       },
       {
         title: 'Komisi Baru Tercatat',
-        message: 'Content Creator X mendapatkan komisi pertama kali dari channel live streaming sebesar Rp 3.200.000',
-        alertType: 'increase',
-        entityType: 'affiliate',
-        entityId: 'AFF003',
-        entityName: 'Content Creator X',
-        previousValue: 0,
-        currentValue: 3200000,
-        changePercent: 100,
+        description: 'Content Creator X mendapatkan komisi pertama kali dari channel live streaming sebesar Rp 3.200.000',
+        type: 'increase',
         severity: 'info',
         isRead: true,
+        sellerId: 'SLR003',
+        sellerName: 'Beauty Palace Store',
       },
       {
         title: 'Anomali Order Terdeteksi',
-        message: 'Terjadi lonjakan 200% pada pesanan dari seller SLR005 dalam 24 jam terakhir. Harap verifikasi.',
-        alertType: 'anomaly',
-        entityType: 'seller',
-        entityId: 'SLR005',
-        entityName: 'Snack Paradise ID',
-        previousValue: 50,
-        currentValue: 150,
-        changePercent: 200,
+        description: 'Terjadi lonjakan 200% pada pesanan dari seller SLR005 dalam 24 jam terakhir. Harap verifikasi.',
+        type: 'anomaly',
         severity: 'critical',
         isRead: false,
+        sellerId: 'SLR005',
+        sellerName: 'Snack Paradise ID',
       },
     ]);
 
-    console.log(`📊 Monitoring seeded: ${soldProducts.length} sold products, ${sellerRecaps.length} seller recaps, ${affiliateCommissions.length} commissions, 4 alerts`);
+    console.log(`Monitoring seeded: ${soldProducts.length} sold products, ${sellerRecaps.length} seller recaps, ${affiliateCommissions.length} commissions, 4 alerts`);
   }
 }

@@ -1,3 +1,4 @@
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AffiliateMonitoringController } from './affiliate-monitoring.controller';
 import { AffiliateMonitoringService } from './affiliate-monitoring.service';

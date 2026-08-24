@@ -1,3 +1,16 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  ParseIntPipe,
+  UseGuards,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ShopeeCookiesService } from './shopee-cookies.service';
 
@@ -8,7 +21,7 @@ export class ShopeeCookiesController {
 
   @Get()
   async getAllCookies() {
-    return this.cookiesService.getAllCookies();
+    return this.cookiesService.findAll();
   }
 
   @Get('status')
@@ -23,16 +36,12 @@ export class ShopeeCookiesController {
       cookies: string;
       label?: string;
       notes?: string;
-      expiresAt?: string;
     },
   ) {
-    if (!body.cookies || !body.cookies.trim()) {
-      throw new HttpException(
-        'Cookies string is required',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!body.cookies) {
+      throw new HttpException('Cookies string is required', HttpStatus.BAD_REQUEST);
     }
-    return this.cookiesService.saveCookies(body);
+    return this.cookiesService.saveCookies(body.cookies, body.label, body.notes);
   }
 
   @Put(':id')
@@ -44,7 +53,6 @@ export class ShopeeCookiesController {
       label?: string;
       notes?: string;
       isActive?: boolean;
-      expiresAt?: string;
     },
   ) {
     return this.cookiesService.updateCookies(id, body);
@@ -52,7 +60,6 @@ export class ShopeeCookiesController {
 
   @Delete(':id')
   async deleteCookies(@Param('id', ParseIntPipe) id: number) {
-    await this.cookiesService.deleteCookies(id);
-    return { message: 'Cookie deleted successfully' };
+    return this.cookiesService.deleteCookies(id);
   }
 }

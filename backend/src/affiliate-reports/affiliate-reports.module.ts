@@ -1,3 +1,4 @@
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AffiliateReportsController } from './affiliate-reports.controller';
 import { AffiliateReportsService } from './affiliate-reports.service';
@@ -21,5 +22,6 @@ import {
   ],
   controllers: [AffiliateReportsController],
   providers: [AffiliateReportsService],
+  exports: [AffiliateReportsService],
 })
 export class AffiliateReportsModule {}

@@ -57,7 +57,7 @@ import { LeaveRequestModule } from './leave-request/leave-request.module';
   imports: [
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
-      database: 'shopee-affiliate.db',
+      database: process.env.DB_PATH || 'shopee-affiliate.db',
       entities: [User, Category, Product, Transaction, Employee, Attendance, LiveSession, ShopeeCookie, LiveSnapshot, Schedule, Payroll, AffiliateProduct, AffiliateCommission, AffiliateLiveReport, AffiliateVideoReport, AffiliateSocialReport, Seller, MonitoringSoldProduct, MonitoringSellerRecap, MonitoringAffiliateCommission, MonitoringCommissionAlert, MonitoringAccessConfig, Target, KpiScore, Studio, EmployeeStudio, ScheduleSwapRequest, LeaveRequest],
       synchronize: true,
     }),

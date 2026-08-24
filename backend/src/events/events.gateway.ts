@@ -1,3 +1,9 @@
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway({
@@ -22,14 +28,20 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   notifyNewTransaction(transaction: any) {
-    this.server.emit('newTransaction', transaction);
+    if (this.server) {
+      this.server.emit('newTransaction', transaction);
+    }
   }
 
   notifyDashboardUpdate(stats: any) {
-    this.server.emit('dashboardUpdate', stats);
+    if (this.server) {
+      this.server.emit('dashboardUpdate', stats);
+    }
   }
 
   notifyAlert(alert: { type: string; message: string; data?: any }) {
-    this.server.emit('alert', alert);
+    if (this.server) {
+      this.server.emit('alert', alert);
+    }
   }
 }

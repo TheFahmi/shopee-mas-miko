@@ -31,3 +31,6 @@ Thumbs.db
 nul
 src_corrupt/
 **/src_corrupt/
+backend/dist_old*/
+backend/node_modules_corrupt/
+frontend_corrupt_old/

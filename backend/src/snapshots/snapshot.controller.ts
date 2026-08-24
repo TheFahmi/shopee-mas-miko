@@ -1,3 +1,10 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { SnapshotService } from './snapshot.service';
 

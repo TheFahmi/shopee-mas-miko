@@ -1,3 +1,11 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ShopeeApiService } from './shopee-api.service';
 import { Roles, RolesGuard } from '../auth/roles.guard';
@@ -69,21 +77,18 @@ export class ShopeeController {
       this.shopeeApiService.getBestSellerProducts(10),
     ]);
 
-    // Aggregate by source
     const liveTotal = {
-      gmv: liveSessions.reduce((s, l) => s + l.gmv, 0),
-      commission: liveSessions.reduce((s, l) => s + l.commission, 0),
-      orders: liveSessions.reduce((s, l) => s + l.orders, 0),
-      sessions: liveSessions.length,
-      viewers: liveSessions.reduce((s, l) => s + l.viewers, 0),
+      gmv: liveSessions.reduce((s, ls) => s + ls.gmv, 0),
+      commission: liveSessions.reduce((s, ls) => s + ls.commission, 0),
+      orders: liveSessions.reduce((s, ls) => s + ls.orders, 0),
+      clicks: liveSessions.reduce((s, ls) => s + ls.clicks, 0),
     };
 
     const videoTotal = {
       gmv: videos.reduce((s, v) => s + v.gmv, 0),
       commission: videos.reduce((s, v) => s + v.commission, 0),
       orders: videos.reduce((s, v) => s + v.orders, 0),
-      videos: videos.length,
-      views: videos.reduce((s, v) => s + v.views, 0),
+      clicks: videos.reduce((s, v) => s + v.clicks, 0),
     };
 
     const socialTotal = {
@@ -99,7 +104,8 @@ export class ShopeeController {
       performance,
       channelBreakdown: {
         live: { ...liveTotal, percentage: totalGmv > 0 ? ((liveTotal.gmv / totalGmv) * 100).toFixed(1) : 0 },
-        video: { ...videoTotal, percentage: totalGmv > 0 ? ((videoTotal.gmv / totalGmvx0u����=��+,-�μ��\$2V��D��   socialMedia: { ...socialTotal, percentage: totalGmv > 0 ? ((socialTotal.gmv / totalGmv) * 100).toFixed(1) : 0 },
+        video: { ...videoTotal, percentage: totalGmv > 0 ? ((videoTotal.gmv / totalGmv) * 100).toFixed(1) : 0 },
+        socialMedia: { ...socialTotal, percentage: totalGmv > 0 ? ((socialTotal.gmv / totalGmv) * 100).toFixed(1) : 0 },
       },
       liveSessions,
       videos,

@@ -1,3 +1,15 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ProductsService } from './products.service';
 import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
@@ -5,7 +17,7 @@ import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
 @Controller('products')
 @UseGuards(AuthGuard('jwt'))
 export class ProductsController {
-  constructor(private productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) {}
 
   @Get()
   findAll(@Query('categoryId') categoryId?: string, @Query('search') search?: string) {

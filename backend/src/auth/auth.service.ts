@@ -1,9 +1,13 @@
-import { JwtService } from '@nestjs/jwt';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { User, UserRole } from '../entities';
-import { Employee } from '../entities/employee.entity';
+import { User, UserRole } from '../entities/user.entity';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 
 @Injectable()
@@ -11,14 +15,15 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectRepository(Employee)
-    private employeesRepository: Repository<Employee>,
     private jwtService: JwtService,
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const existing = await this.usersRepository.findOne({ where: { email: registerDto.email } });
-    if (existing) {
+    const existingUser = await this.usersRepository.findOne({
+      where: { email: registerDto.email },
+    });
+
+    if (existingUser) {
       throw new ConflictException('Email already registered');
     }
 
@@ -33,13 +38,16 @@ export class AuthService {
     const token = this.generateToken(savedUser);
 
     return {
-      user: { id: savedUser.id, email: savedUser.email, name: savedUser.name, role: savedUser.role },
-      access_token: token,
+      user: savedUser.toJSON(),
+      token,
     };
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.usersRepository.findOne({ where: { email: loginDto.email } });
+    const user = await this.usersRepository.findOne({
+      where: { email: loginDto.email },
+    });
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -50,40 +58,23 @@ export class AuthService {
     }
 
     const token = this.generateToken(user);
-    const result: any = {
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
-      access_token: token,
+
+    return {
+      user: user.toJSON(),
+      token,
     };
-
-    // If employee role, attach employeeId
-    if (user.role === UserRole.EMPLOYEE) {
-      const employee = await this.employeesRepository.findOne({ where: { userId: user.id } });
-      if (employee) {
-        result.user.employeeId = employee.id;
-      }
-    }
-
-    return result;
   }
 
-  async getProfile(userId: number) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+  async validateUserById(id: number): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new UnauthorizedException();
     }
-    const profile: any = { id: user.id, email: user.email, name: user.name, role: user.role };
-
-    if (user.role === UserRole.EMPLOYEE) {
-      const employee = await this.employeesRepository.findOne({ where: { userId: user.id } });
-      if (employee) {
-        profile.employeeId = employee.id;
-      }
-    }
-
-    return profile;
+    return user;
   }
 
-  private generateToken(user: User) {
-    return this.jwtService.sign({ sub: user.id, email: user.email, role: user.role });
+  private generateToken(user: User): string {
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return this.jwtService.sign(payload);
   }
 }

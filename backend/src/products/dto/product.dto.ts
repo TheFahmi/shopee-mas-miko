@@ -1,3 +1,5 @@
+import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
+
 export class CreateProductDto {
   @IsString()
   @IsNotEmpty()
@@ -63,7 +65,4 @@ export class UpdateProductDto {
   @IsOptional()
   @IsString()
   shopeeProductId?: string;
-
-  @IsOptional()
-  isActive?: boolean;
 }

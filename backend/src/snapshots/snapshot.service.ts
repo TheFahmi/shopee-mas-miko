@@ -1,3 +1,4 @@
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
@@ -42,7 +43,7 @@ export class SnapshotService {
 
     let sessions: any[] = [];
     try {
-      const activeCookie = await this.cookiesService.getActiveCookies();
+      const activeCookie = await this.cookiesService.getActiveCookie();
       if (activeCookie) {
         try {
           const raw = await this.creatorService.getSessionList({ page: 1, pageSize: 100 });
@@ -112,7 +113,7 @@ export class SnapshotService {
   }) {
     const where: any = {};
     if (filters?.startDate && filters?.endDate) {
-      where.snapshotDate = Between(f9�p͞��>�)نg|vGRQrx=]�][* rNe);
+      where.snapshotDate = Between(filters.startDate, filters.endDate);
     } else if (filters?.startDate) {
       where.snapshotDate = filters.startDate;
     }

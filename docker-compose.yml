@@ -1,0 +1,44 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: shopee-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+      - JWT_SECRET=${JWT_SECRET:-super_secret_shopee_mas_miko_jwt_key_2026}
+      - DB_PATH=/app/data/shopee-affiliate.db
+    volumes:
+      - backend_data:/app/data
+    networks:
+      - shopee-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: shopee-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001/api}
+      - INTERNAL_API_URL=http://backend:3001
+    depends_on:
+      - backend
+    networks:
+      - shopee-network
+
+volumes:
+  backend_data:
+    driver: local
+
+networks:
+  shopee-network:
+    driver: bridge

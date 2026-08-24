@@ -1,3 +1,4 @@
+import { IsNumber, IsOptional, IsEnum, IsDateString, IsBoolean, IsString } from 'class-validator';
 import { TransactionStatus, TrafficSource } from '../../entities';
 
 export class CreateTransactionDto {
